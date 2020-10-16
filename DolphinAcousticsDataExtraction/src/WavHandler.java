@@ -27,14 +27,30 @@ public class WavHandler {
             return;
         } else{
             for(int i = 0; i < timeRanges.length; i++){ //for each annotation
-                createWavFile(timeRanges[i][0], timeRanges[i][1]);
+                byte[] annotationData = extractAnnotation(timeRanges[i][0], timeRanges[i][1], dto.getSampleRate(), dto.getBytesPerSample());
+                storeAnnotationAsWavFile(annotationData);
             }
         }
     }
 
-    private void createWavFile(double startTime, double endtime, WavHeaderInfo headerInfo){
-        double timePeriod = 1/headerInfo.getSampleRate();
-        double startTimeRounded =
+    private boolean storeAnnotationAsWavFile(byte[] data){
+        //stub, need to create wav file with ALL THE CORRECT HEADER INFO
+        return true;
+    }
+
+    private byte[] extractAnnotation(double startTime, double endtime, double sampleRate, int bytesPerSample){
+        double timePeriod = 1/sampleRate;
+        int numberOfFramesBeforeStart = (int)(startTime / timePeriod);
+        int numberOfFramesBeforeEnd = (int)(endtime / timePeriod);
+        int framesToExtract = numberOfFramesBeforeEnd - numberOfFramesBeforeStart;
+        byte[] annotation = new byte[framesToExtract * bytesPerSample];
+        try{
+            inputStream.read(annotation, (numberOfFramesBeforeStart * bytesPerSample), (numberOfFramesBeforeEnd * bytesPerSample));
+            return annotation;
+        } catch(IOException e){
+            System.out.println("Failed trying to extract an annotation from the wav file");
+        }
+        return null;
     }
 
     private WavHeaderInfo extractHeaderInfo(){
@@ -46,7 +62,7 @@ public class WavHandler {
                     {22,24}, // Number of channels
                     {24,28}, // Sample Rate
                     {28,32}, // Byte Rate
-                    {34,36}, // Bits per sample
+                    {34,36}, // Bits per sample (going to convert to bytes)
                     {40,44}  // Number of bytes in the data chunk
             };
             int[] values = new int[byteRanges.length];
@@ -65,3 +81,5 @@ public class WavHandler {
 }
 
 //WAV files are based off of the Microsoft RIFF container format.
+//Rounding to the nearest frame based off the time period is going to be tricky. F = 1 / T.
+//Mantissa and Exponent

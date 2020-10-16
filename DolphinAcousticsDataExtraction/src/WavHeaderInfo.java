@@ -4,13 +4,13 @@ public class WavHeaderInfo {
     private int sampleRate;
     private int dataSizeInBytes;
     private int byteRate;
-    private int bitsPerSample;
+    private int bytesPerSample;
 
     public WavHeaderInfo(int[] values){
         this.numberOfChannels = values[0];
         this.sampleRate = values[1];
         this.byteRate = values[2];
-        this.bitsPerSample = values[3];
+        this.bytesPerSample = values[3] / 8; //converting to bytes
         this.dataSizeInBytes = values[4];
     }
 
@@ -30,7 +30,7 @@ public class WavHeaderInfo {
         return byteRate;
     }
 
-    public int getBitsPerSample(){
-        return bitsPerSample;
+    public int getBytesPerSample(){
+        return bytesPerSample;
     }
 }
