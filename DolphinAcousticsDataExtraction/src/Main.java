@@ -22,6 +22,11 @@ public class Main {
         }
     }
 
+    /**
+     * Extracts the whistle time ranges (Start and End) for each annotation and stores them in a 2D array.
+     * @param whistles All the recorded information for an annotation.
+     * @return The whistle time ranges.
+     */
     private static double[][] extractWhistleTimes(LinkedList<tonal> whistles){
         double[][] whistleTimes = new double[whistles.size()][2];
         Iterator<tonal> iterator  = whistles.iterator();
@@ -34,8 +39,13 @@ public class Main {
         return whistleTimes;
     }
 
+    /**
+     * Extracts the minimum and max time for an annotation, so that we can get the time range.
+     * @param values All the recordings for a whistle.
+     * @return
+     */
     private static double[] getMinAndMaxValue(double[] values){
-        Arrays.sort(values);
+        Arrays.sort(values); //Just in case we get annotation information that isn't sorted
         return new double[]{values[0], values[values.length - 1]};
     }
 }
