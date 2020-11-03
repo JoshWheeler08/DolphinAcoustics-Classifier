@@ -7,11 +7,11 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 public class Main {
-    public static final String WAV_FILES_DIRECTORY_PATH = "/cs/scratch/jmw37/5th_DCL_data_bottlenose/";
-    public static final String ANNOTATIONS_DIRECTORY_PATH = "/cs/home/jmw37/Documents/SecondYear/DolphinAcoustics_VIP/Annotations/bottlenose/";
+    public static final String WAV_FILES_DIRECTORY_PATH = "/cs/home/jmw37/Documents/SecondYear/DolphinAcoustics_VIP/PracticeCommonSamples/";
+    public static final String ANNOTATIONS_DIRECTORY_PATH = "/cs/home/jmw37/Documents/SecondYear/DolphinAcoustics_VIP/Annotations/common/";
 
     public static void main(String[] args) {
-        String filename = "palmyra092007FS192-070924-205305";
+        String filename = "Qx-Dc-CC0411-TAT11-CH2-041114-154040-s";
         tonals.TonalBinaryInputStream instream = new tonals.TonalBinaryInputStream();
         try{
             instream.tonalBinaryInputStream(ANNOTATIONS_DIRECTORY_PATH + filename + ".bin");
@@ -21,6 +21,7 @@ public class Main {
             wavExtractor.extractAnnotationsFromWav();
         } catch(Exception e) {
             System.out.println("Failed to read from file.");
+            System.out.println("Error : " + e.getMessage());
         }
     }
 

@@ -11,6 +11,8 @@ import java.io.IOException;
  */
 public class WavHandler {
     private WavFile wavFile;
+    private double[] fileAsFrames;
+    private int numberOfFramesInFile;
     private double[][] timeRanges;
 
     /**
@@ -21,6 +23,8 @@ public class WavHandler {
     public WavHandler(String filename, double[][] timeRanges){
         try{
             wavFile = WavFile.openWavFile(new File(filename));
+            numberOfFramesInFile = (int)wavFile.getNumFrames();
+            fileAsFrames = new double[numberOfFramesInFile];
             System.out.println("Here is the information about the wav file : ");
             wavFile.display();
             if(wavFile.getNumChannels() > 1){
@@ -36,15 +40,28 @@ public class WavHandler {
      * Extracts all annotations from a wav file.
      */
     public void extractAnnotationsFromWav(){
-        for(int i = 0; i < timeRanges.length; i++){ //for each annotation
-            double extraTime;
-            if((extraTime = 1.1 - timeRanges[i][2]) > 0){ // Checking whistle duration is longer than 1.1s
-                // Adding buffer to either side
-                timeRanges[i][0] -= extraTime/2;
-                timeRanges[i][1] += extraTime/2;
+        try{
+            int framesReturned;
+            if((framesReturned = wavFile.readFrames(fileAsFrames, 0, numberOfFramesInFile)) != numberOfFramesInFile){
+                System.out.println("Failed to read in all of file, got " + framesReturned + " / " + numberOfFramesInFile + " frames");
+                return;
             }
-            double[] annotationData = extractAnnotation(timeRanges[i][0], timeRanges[i][1], wavFile.getSampleRate());
-            storeAnnotationAsWavFile(annotationData, "Annotation" + Integer.toString(i));
+            wavFile.close();
+            for(int i = 0; i < timeRanges.length; i++){ //for each annotation
+                double extraTime;
+                if((extraTime = 1.1 - timeRanges[i][2]) > 0){ // Checking whistle duration is longer than 1.1s
+                    // Adding buffer to either side
+                    timeRanges[i][0] -= extraTime/2;
+                    timeRanges[i][1] += extraTime/2;
+                }
+                //double[] annotationData = extractAnnotation(timeRanges[i][0], timeRanges[i][1], wavFile.getSampleRate());
+                if(!storeAnnotationAsWavFile(fileAsFrames, "Annotation" + Integer.toString(i) + ".wav")){
+                   System.out.println("Failed to make a new annotation clip");
+                   return;
+               }
+            }
+        } catch (Exception e) {
+            System.out.println("Failed to read in file as frames");
         }
     }
 
@@ -55,7 +72,7 @@ public class WavHandler {
      */
     private boolean storeAnnotationAsWavFile(double[] data, String newFilename){
         try{
-            WavFile newWavFile = WavFile.newWavFile(new File(newFilename), wavFile.getNumChannels(), wavFile.getNumFrames(), wavFile.getValidBits(), wavFile.getSampleRate());
+            WavFile newWavFile = WavFile.newWavFile(new File("CreatedClips/" + newFilename), wavFile.getNumChannels(), wavFile.getNumFrames(), wavFile.getValidBits(), wavFile.getSampleRate());
             newWavFile.writeFrames(data, data.length);
             newWavFile.close();
             return true;
@@ -95,18 +112,20 @@ public class WavHandler {
         int numberOfFramesStart = (int)(startTime / timePeriod);
         int numberOfFramesEnd = (int)Math.ceil(endtime / timePeriod);
         int framesToExtract = numberOfFramesEnd - numberOfFramesStart;
-        double[] audioFrames = new double[framesToExtract];
+        double[] audioFrames = null;
         try{
-            int framesRead = wavFile.readFrames(audioFrames, numberOfFramesStart, numberOfFramesEnd);
-            if(framesRead != framesToExtract){
-                System.out.println("Unable to read in all the frames, got " + framesRead + " / " + framesToExtract);
-            }
-            wavFile.close();
+            audioFrames = new double[framesToExtract];
+            System.arraycopy(fileAsFrames, numberOfFramesStart, audioFrames, 0, framesToExtract);
             return audioFrames;
-        } catch(WavFileException | IOException e){
-            System.out.println("Failed trying to extract an annotation from the wav file");
-            return null;
+        } catch(Exception e){
+            System.out.println("Failed trying to extract frames from buffer");
+            System.out.println("Error : " + e.getMessage());
         }
+        return audioFrames;
     }
 }
-/* Memory consideration : is it better to load the entire WAV file in or keep jumping into file like this? */
+/*
+ * Memory consideration : Is it better to load the entire WAV file in or keep jumping into the file? ->
+ * Currently it loads the recording into an array which will make the system faster for smaller recordings but could make it impossible to use really large files due to
+ * main memory exhaustion.
+ */
