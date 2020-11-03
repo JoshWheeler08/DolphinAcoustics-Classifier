@@ -1,3 +1,5 @@
+package MyCode;
+
 import tonals.tonal;
 
 import java.util.Arrays;
