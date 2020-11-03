@@ -6,6 +6,8 @@ import WavFile.WavFileException;
 import java.io.File;
 import java.io.IOException;
 
+import static java.lang.System.exit;
+
 /**
  * Handles the extraction of annotations and the creation of new wav files for these annotations.
  */
@@ -33,6 +35,7 @@ public class WavHandler {
             this.timeRanges = timeRanges;
         } catch(Exception e){
             System.out.println("Failed to open audio input stream : " + filename);
+            exit(1);
         }
     }
 
@@ -54,8 +57,8 @@ public class WavHandler {
                     timeRanges[i][0] -= extraTime/2;
                     timeRanges[i][1] += extraTime/2;
                 }
-                //double[] annotationData = extractAnnotation(timeRanges[i][0], timeRanges[i][1], wavFile.getSampleRate());
-                if(!storeAnnotationAsWavFile(fileAsFrames, "Annotation" + Integer.toString(i) + ".wav")){
+                double[] annotationData = extractAnnotation(timeRanges[i][0], timeRanges[i][1], wavFile.getSampleRate());
+                if(!storeAnnotationAsWavFile(annotationData, "Annotation" + Integer.toString(i) + ".wav", annotationData.length)){
                    System.out.println("Failed to make a new annotation clip");
                    return;
                }
@@ -70,10 +73,10 @@ public class WavHandler {
      * @param data The recording data.
      * @return  Boolean flag indicating success or failure.
      */
-    private boolean storeAnnotationAsWavFile(double[] data, String newFilename){
+    private boolean storeAnnotationAsWavFile(double[] data, String newFilename, int numberOfFrames){
         try{
-            WavFile newWavFile = WavFile.newWavFile(new File("CreatedClips/" + newFilename), wavFile.getNumChannels(), wavFile.getNumFrames(), wavFile.getValidBits(), wavFile.getSampleRate());
-            newWavFile.writeFrames(data, data.length);
+            WavFile newWavFile = WavFile.newWavFile(new File("CreatedClips/" + newFilename), wavFile.getNumChannels(), numberOfFrames, wavFile.getValidBits(), wavFile.getSampleRate());
+            newWavFile.writeFrames(data, numberOfFrames);
             newWavFile.close();
             return true;
         } catch (IOException | WavFileException wfe){
@@ -128,4 +131,5 @@ public class WavHandler {
  * Memory consideration : Is it better to load the entire WAV file in or keep jumping into the file? ->
  * Currently it loads the recording into an array which will make the system faster for smaller recordings but could make it impossible to use really large files due to
  * main memory exhaustion.
+ *
  */
