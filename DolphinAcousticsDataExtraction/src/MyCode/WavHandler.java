@@ -12,6 +12,8 @@ import static java.lang.System.exit;
  * Handles the extraction of annotations and the creation of new wav files for these annotations.
  */
 public class WavHandler {
+    private static String DEFAULT_ANNOTATION_FILENAME = "Annotation";
+
     private WavFile wavFile;
     private double[] fileAsFrames;
     private int numberOfFramesInFile;
@@ -34,7 +36,7 @@ public class WavHandler {
             }
             this.timeRanges = timeRanges;
         } catch(Exception e){
-            System.out.println("Failed to open audio input stream : " + filename);
+            Main.handleErrorMessage("Failed to open audio input stream : " + filename, e);
             exit(1);
         }
     }
@@ -50,6 +52,7 @@ public class WavHandler {
                 return;
             }
             wavFile.close();
+            clearClipsDirectory();
             for(int i = 0; i < timeRanges.length; i++){ //for each annotation
                 double extraTime;
                 if((extraTime = 1.1 - timeRanges[i][2]) > 0){ // Checking whistle duration is longer than 1.1s
@@ -58,13 +61,25 @@ public class WavHandler {
                     timeRanges[i][1] += extraTime/2;
                 }
                 double[] annotationData = extractAnnotation(timeRanges[i][0], timeRanges[i][1], wavFile.getSampleRate());
-                if(!storeAnnotationAsWavFile(annotationData, "Annotation" + Integer.toString(i) + ".wav", annotationData.length)){
+                if(!storeAnnotationAsWavFile(annotationData, DEFAULT_ANNOTATION_FILENAME + Integer.toString(i) + ".wav", annotationData.length)){
                    System.out.println("Failed to make a new annotation clip");
                    return;
                }
             }
         } catch (Exception e) {
-            System.out.println("Failed to read in file as frames");
+            Main.handleErrorMessage("Failed to read in file as frames", e);
+        }
+    }
+
+    /**
+     * Clears all of the old clips out of the created clips directory.
+     */
+    private void clearClipsDirectory(){
+        //http://helpdesk.objects.com.au/java/how-to-delete-all-files-in-a-directory#:~:text=Use%20the%20listFiles()%20method,used%20to%20delete%20each%20file.
+        File directory = new File(Main.CREATED_CLIPS_DIRECTORY_PATH);
+        File[] files = directory.listFiles();
+        for(File file : files){
+            if(!file.delete()) System.out.println("Failed to remove file " + file.getName() + " from " + Main.CREATED_CLIPS_DIRECTORY_PATH);
         }
     }
 
@@ -75,12 +90,12 @@ public class WavHandler {
      */
     private boolean storeAnnotationAsWavFile(double[] data, String newFilename, int numberOfFrames){
         try{
-            WavFile newWavFile = WavFile.newWavFile(new File("CreatedClips/" + newFilename), wavFile.getNumChannels(), numberOfFrames, wavFile.getValidBits(), wavFile.getSampleRate());
+            WavFile newWavFile = WavFile.newWavFile(new File(Main.CREATED_CLIPS_DIRECTORY_PATH + newFilename), wavFile.getNumChannels(), numberOfFrames, wavFile.getValidBits(), wavFile.getSampleRate());
             newWavFile.writeFrames(data, numberOfFrames);
             newWavFile.close();
             return true;
         } catch (IOException | WavFileException wfe){
-            System.out.println("Problem creating new wav file");
+            Main.handleErrorMessage("Problem creating new wav file", wfe);
             return false;
         }
     }
@@ -121,8 +136,7 @@ public class WavHandler {
             System.arraycopy(fileAsFrames, numberOfFramesStart, audioFrames, 0, framesToExtract);
             return audioFrames;
         } catch(Exception e){
-            System.out.println("Failed trying to extract frames from buffer");
-            System.out.println("Error : " + e.getMessage());
+            Main.handleErrorMessage("Failed trying to extract frames from buffer", e);
         }
         return audioFrames;
     }
@@ -131,5 +145,4 @@ public class WavHandler {
  * Memory consideration : Is it better to load the entire WAV file in or keep jumping into the file? ->
  * Currently it loads the recording into an array which will make the system faster for smaller recordings but could make it impossible to use really large files due to
  * main memory exhaustion.
- *
  */

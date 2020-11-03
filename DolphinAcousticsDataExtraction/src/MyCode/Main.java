@@ -13,7 +13,8 @@ import static java.lang.System.exit;
 
 public class Main {
     public static final String WAV_FILES_DIRECTORY_PATH = "/cs/home/jmw37/Documents/SecondYear/DolphinAcoustics_VIP/PracticeCommonSamples/";
-    public static final String ANNOTATIONS_DIRECTORY_PATH = "/cs/home/jmw37/Documents/SecondYear/DolphinAcoustics_VIP/Annotations/raven/";
+    public static final String ANNOTATIONS_DIRECTORY_PATH = "/cs/home/jmw37/Documents/SecondYear/DolphinAcoustics_VIP/Annotations/common/";
+    public static final String CREATED_CLIPS_DIRECTORY_PATH = "/cs/home/jmw37/Documents/SecondYear/DolphinAcoustics_VIP/CreatedClips/";
 
     public static void main(String[] args) {
         String unparsedFilename;
@@ -195,7 +196,7 @@ public class Main {
      * @param message The message to be outputted.
      * @param e The exception object containing specific error details.
      */
-    private static void handleErrorMessage(String message, Exception e){
+    public static void handleErrorMessage(String message, Exception e){
         System.out.println(message);
         System.out.println("Error : " + e.getMessage());
     }
