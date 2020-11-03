@@ -3,7 +3,6 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -16,11 +15,12 @@ import java.util.Arrays;
 public class WavHandler {
     private AudioInputStream inputStream;
     private AudioFormat wavFile;
+    private WavFile;
     private FileOutputStream outputStream;
     private double[][] timeRanges;
 
     /**
-     * Constuctor.
+     * Constructor.
      * @param filename The name of the sound file we will be extracting the annotations from.
      * @param timeRanges The time range for each annotation
      */
@@ -28,6 +28,9 @@ public class WavHandler {
         try{
             inputStream = AudioSystem.getAudioInputStream(new File(filename));
             wavFile = inputStream.getFormat();
+            if(wavFile.getChannels() > 1){
+                System.out.println("System can only handle mono audio signals, be prepared for undefined behaviour");
+            }
             this.timeRanges = timeRanges;
         } catch(IOException | UnsupportedAudioFileException e){
             System.out.println("Failed to open audio input stream : " + filename);
@@ -38,15 +41,15 @@ public class WavHandler {
      * Extracts all annotations from a wav file.
      */
     public void extractAnnotationsFromWav(){
-        WavHeaderInfo dto = extractHeaderInfo();
-        if(dto == null) {
-            System.out.println("Wav file header format was not recognised");
-            return;
-        } else{
-            for(int i = 0; i < timeRanges.length; i++){ //for each annotation
-                byte[] annotationData = extractAnnotation(timeRanges[i][0], timeRanges[i][1], dto.getSampleRate(), dto.getBytesPerSample());
-                storeAnnotationAsWavFile(annotationData);
+        for(int i = 0; i < timeRanges.length; i++){ //for each annotation
+            double extraTime;
+            if((extraTime = 1.1 - timeRanges[i][2]) > 0){ // Checking whistle duration is longer than 1.1s
+                // Adding buffer to either side
+                timeRanges[i][0] -= extraTime/2;
+                timeRanges[i][1] += extraTime/2;
             }
+            byte[] annotationData = extractAnnotation(timeRanges[i][0], timeRanges[i][1], wavFile.getSampleRate(), wavFile.getSampleSizeInBits() / 8);
+            storeAnnotationAsWavFile(annotationData);
         }
     }
 
@@ -67,6 +70,8 @@ public class WavHandler {
      * @param sampleRate The sampling rate of the recording equipment (I.e. the number of samples per second)
      * @param bytesPerSample The number of bytes per sample (bit depth)
      * @return The recording information corresponding to that annotation.
+     *
+     * When reading from multiple channels we will need to be careful with how the data is organised. Typically : sample1L sample1R sample2L sample2R sample3L sample3R...
      */
     private byte[] extractAnnotation(double startTime, double endtime, double sampleRate, int bytesPerSample){
         double timePeriod = 1/sampleRate;
@@ -89,16 +94,17 @@ public class WavHandler {
         int numberOfFramesStart = (int)(startTime / timePeriod);
         int numberOfFramesEnd = (int)Math.ceil(endtime / timePeriod);
         int framesToExtract = numberOfFramesEnd - numberOfFramesStart;
-        byte[] annotation = new byte[framesToExtract * bytesPerSample];
+        byte[] audioBytes = new byte[framesToExtract * bytesPerSample];
         try{
-            inputStream.read(annotation, (numberOfFramesStart * bytesPerSample), (numberOfFramesEnd * bytesPerSample)); //(annotation, byte starting point, byte ending point)
-            /* Memory consideration : is it better to load the entire WAV file in or keep jumping into file like this? */
-            return annotation;
+            inputStream.read(audioBytes, (numberOfFramesStart * bytesPerSample), (numberOfFramesEnd * bytesPerSample)); //(annotation, byte starting point, byte ending point)
+            return audioBytes;
         } catch(IOException e){
             System.out.println("Failed trying to extract an annotation from the wav file");
         }
         return null;
     }
+
+    /* Memory consideration : is it better to load the entire WAV file in or keep jumping into file like this? */
 
     /**
      * Extracts the header information from the wav file, which can be used for the creation of new smaller wav files.

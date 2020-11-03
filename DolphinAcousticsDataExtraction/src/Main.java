@@ -33,7 +33,7 @@ public class Main {
         int counter = 0;
         while(iterator.hasNext()) {
             tonal whistle = iterator.next();
-            double[] minAndMaxTime = getMinAndMaxValue(whistle.get_time());
+            double[] minAndMaxTime = getMinAndMaxValue(whistle.get_time(), whistle.get_duration());
             whistleTimes[counter++] = minAndMaxTime;
         }
         return whistleTimes;
@@ -44,8 +44,8 @@ public class Main {
      * @param values All the recordings for a whistle.
      * @return
      */
-    private static double[] getMinAndMaxValue(double[] values){
+    private static double[] getMinAndMaxValue(double[] values, double whistleDuration){
         Arrays.sort(values); //Just in case we get annotation information that isn't sorted
-        return new double[]{values[0], values[values.length - 1]};
+        return new double[]{values[0], values[values.length - 1], whistleDuration};
     }
 }
