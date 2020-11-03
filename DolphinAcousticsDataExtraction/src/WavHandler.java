@@ -15,7 +15,6 @@ import java.util.Arrays;
 public class WavHandler {
     private AudioInputStream inputStream;
     private AudioFormat wavFile;
-    private WavFile;
     private FileOutputStream outputStream;
     private double[][] timeRanges;
 
