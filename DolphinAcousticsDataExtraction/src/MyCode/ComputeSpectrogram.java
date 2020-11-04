@@ -46,7 +46,7 @@ public class ComputeSpectrogram {
      * @return The frames stored as a double array.
      */
     private double[] readInFileAsFrames(){
-        int numOfFrames = (int)wavFile.getNumFrames(); // May need to check this conversion
+        int numOfFrames = (int)wavFile.getNumFrames();
         double[] frames = new double[numOfFrames];
         try{
             int framesRead = wavFile.readFrames(frames, numOfFrames);

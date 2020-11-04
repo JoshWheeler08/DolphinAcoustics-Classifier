@@ -16,12 +16,20 @@ public class Main {
     public static final String ANNOTATIONS_DIRECTORY_PATH = "/cs/home/jmw37/Documents/SecondYear/DolphinAcoustics_VIP/Annotations/raven/";
     public static final String CREATED_CLIPS_DIRECTORY_PATH = "/cs/home/jmw37/Documents/SecondYear/DolphinAcoustics_VIP/CreatedClips/";
 
+    /**
+     * 1. Takes a file
+     * 2. Extracts the start & end time for each annotation
+     * 3. Extracts each annotation from sound file.
+     * 4. Stores each annotation in new wav file (createdClips).
+     * @param args Command line args - not used.
+     */
     public static void main(String[] args) {
         String unparsedFilename;
         String[] fileDetails;
         /* Getting the filename and parsing it */
         do{
             unparsedFilename = getFilename();
+            //E.g. "Qx-Dc-CC0411-TAT11-CH2-041114-154040-s.bin";
             fileDetails = parseFilename(unparsedFilename);
         }while (fileDetails == null);
         double[][] annotationTimesForWav = null;
@@ -40,7 +48,7 @@ public class Main {
                     exit(1);
             }
             if(annotationTimesForWav != null){
-                /* Extracting the annotations */
+                /* Extracting annotations */
                 WavHandler wavExtractor = new WavHandler(WAV_FILES_DIRECTORY_PATH + fileDetails[0] + ".wav", annotationTimesForWav);
                 wavExtractor.extractAnnotationsFromWav();
             }
@@ -68,7 +76,7 @@ public class Main {
             }
         } while(!gotAnswer);
         return filename;
-    } //String filename = "Qx-Dc-CC0411-TAT11-CH2-041114-154040-s.bin";
+    }
 
 
     /**
@@ -104,7 +112,7 @@ public class Main {
             TextFileDetails fileDetails = getTxtFileDetails();
             /* Reading in file contents */
             List<String> fileLines = Files.readAllLines(Paths.get(ANNOTATIONS_DIRECTORY_PATH + unparsedFilename), StandardCharsets.UTF_8);
-            annotationTimesInWav = new double[fileLines.size() - 1][2]; // - 1 because we aren't including the heading row
+            annotationTimesInWav = new double[fileLines.size() - 1][2]; // '- 1' because we aren't including the heading row
             /* Iterating through each row in selection table */
             Iterator<String> iter = fileLines.listIterator();
             iter.next(); // Skipping the header of table
@@ -155,7 +163,7 @@ public class Main {
 
     /**
      * Extracts the min and max times for each annotation from a binary file.
-     * @param unparsedFilename The user-inputted (complete) filename
+     * @param unparsedFilename The user-inputted filename
      * @return The min and max times for each annotation.
      */
     private static double[][] extractAnnotationTimesFromBinFile(String unparsedFilename){
@@ -208,5 +216,3 @@ public class Main {
         System.out.println("Error : " + e.getMessage());
     }
 }
-
-//get file working then try to generalise for any delimiter

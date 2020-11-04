@@ -9,11 +9,10 @@ import java.io.IOException;
 import static java.lang.System.exit;
 
 /**
- * Handles the extraction of annotations and the creation of new wav files for these annotations.
+ * Handles the extraction and storage of each annotation.
  */
 public class WavHandler {
-    private static final String DEFAULT_ANNOTATION_FILENAME = "Annotation";
-
+    private static final String DEFAULT_ANNOTATION_FILENAME = "Annotation"; // Stem of name for new wav files
     private WavFile wavFile;
     private double[] fileAsFrames;
     private int numberOfFramesInFile;
@@ -22,7 +21,7 @@ public class WavHandler {
     /**
      * Constructor.
      * @param filename The name of the sound file we will be extracting the annotations from.
-     * @param timeRanges The time range for each annotation
+     * @param timeRanges The time range for each annotation.
      */
     public WavHandler(String filename, double[][] timeRanges){
         try{
@@ -47,6 +46,7 @@ public class WavHandler {
     public void extractAnnotationsFromWav(){
         try{
             int framesReturned;
+            /* Reading in file as frames */
             if((framesReturned = wavFile.readFrames(fileAsFrames, 0, numberOfFramesInFile)) != numberOfFramesInFile){
                 System.out.println("Failed to read in all of file, got " + framesReturned + " / " + numberOfFramesInFile + " frames");
                 return;
@@ -55,12 +55,14 @@ public class WavHandler {
             clearClipsDirectory();
             for(int i = 0; i < timeRanges.length; i++){ //for each annotation
                 double extraTime;
-                if((extraTime = 1.1 - timeRanges[i][2]) > 0){ // Checking whistle duration is longer than 1.1s
+                if((extraTime = 1.1 - timeRanges[i][2]) > 0){ // Checking annotation duration is longer than 1.1s
                     // Adding buffer to either side
                     timeRanges[i][0] -= extraTime/2;
                     timeRanges[i][1] += extraTime/2;
                 }
+                /* Extracting annotation */
                 double[] annotationData = extractAnnotation(timeRanges[i][0], timeRanges[i][1], wavFile.getSampleRate());
+                /* Storing annotation */
                 if(!storeAnnotationAsWavFile(annotationData, DEFAULT_ANNOTATION_FILENAME + i + ".wav", annotationData.length)){
                    System.out.println("Failed to make a new annotation clip");
                    return;
@@ -72,7 +74,7 @@ public class WavHandler {
     }
 
     /**
-     * Clears all of the old clips out of the created clips directory.
+     * Clears the created clips directory.
      */
     private void clearClipsDirectory(){
         //http://helpdesk.objects.com.au/java/how-to-delete-all-files-in-a-directory#:~:text=Use%20the%20listFiles()%20method,used%20to%20delete%20each%20file.
@@ -127,7 +129,6 @@ public class WavHandler {
                 End time : 0.9s
                 Start Frame : roundDown(0.2 / (1/6)) = Frame 1
                 End Frame : roundUp(0.9 / (1/6)) = Frame 6 (So we read up but NOT including frame 6).
-            Note that the minimum size of an annotation wav file must be 1.1s for ROCCA, so this will be a special case we need to handle.
          */
         int numberOfFramesStart = (int)(startTime / timePeriod);
         int numberOfFramesEnd = (int)Math.ceil(endtime / timePeriod);
@@ -145,6 +146,9 @@ public class WavHandler {
 }
 /*
  * Memory consideration : Is it better to load the entire WAV file in or keep jumping into the file? ->
- * Currently it loads the recording into an array which will make the system faster for smaller recordings but could make it impossible to use really large files due to
+ * Currently it loads the recording into an array which will make the system faster for smaller files but will make it impossible to use really large files due to
  * main memory exhaustion.
+ *
+ *
+ * Need to add support for multiple sound channels.
  */
