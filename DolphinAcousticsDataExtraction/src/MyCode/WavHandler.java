@@ -12,7 +12,7 @@ import static java.lang.System.exit;
  * Handles the extraction of annotations and the creation of new wav files for these annotations.
  */
 public class WavHandler {
-    private static String DEFAULT_ANNOTATION_FILENAME = "Annotation";
+    private static final String DEFAULT_ANNOTATION_FILENAME = "Annotation";
 
     private WavFile wavFile;
     private double[] fileAsFrames;
@@ -61,7 +61,7 @@ public class WavHandler {
                     timeRanges[i][1] += extraTime/2;
                 }
                 double[] annotationData = extractAnnotation(timeRanges[i][0], timeRanges[i][1], wavFile.getSampleRate());
-                if(!storeAnnotationAsWavFile(annotationData, DEFAULT_ANNOTATION_FILENAME + Integer.toString(i) + ".wav", annotationData.length)){
+                if(!storeAnnotationAsWavFile(annotationData, DEFAULT_ANNOTATION_FILENAME + i + ".wav", annotationData.length)){
                    System.out.println("Failed to make a new annotation clip");
                    return;
                }
@@ -78,8 +78,10 @@ public class WavHandler {
         //http://helpdesk.objects.com.au/java/how-to-delete-all-files-in-a-directory#:~:text=Use%20the%20listFiles()%20method,used%20to%20delete%20each%20file.
         File directory = new File(Main.CREATED_CLIPS_DIRECTORY_PATH);
         File[] files = directory.listFiles();
-        for(File file : files){
-            if(!file.delete()) System.out.println("Failed to remove file " + file.getName() + " from " + Main.CREATED_CLIPS_DIRECTORY_PATH);
+        if(files != null){
+            for(File file : files){
+                if(!file.delete()) System.out.println("Failed to remove file " + file.getName() + " from " + Main.CREATED_CLIPS_DIRECTORY_PATH);
+            }
         }
     }
 

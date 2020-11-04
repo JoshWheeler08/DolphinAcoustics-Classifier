@@ -13,7 +13,7 @@ import static java.lang.System.exit;
 
 public class Main {
     public static final String WAV_FILES_DIRECTORY_PATH = "/cs/home/jmw37/Documents/SecondYear/DolphinAcoustics_VIP/PracticeCommonSamples/";
-    public static final String ANNOTATIONS_DIRECTORY_PATH = "/cs/home/jmw37/Documents/SecondYear/DolphinAcoustics_VIP/Annotations/common/";
+    public static final String ANNOTATIONS_DIRECTORY_PATH = "/cs/home/jmw37/Documents/SecondYear/DolphinAcoustics_VIP/Annotations/raven/";
     public static final String CREATED_CLIPS_DIRECTORY_PATH = "/cs/home/jmw37/Documents/SecondYear/DolphinAcoustics_VIP/CreatedClips/";
 
     public static void main(String[] args) {
@@ -31,6 +31,7 @@ public class Main {
                 case "bin":
                     annotationTimesForWav = extractAnnotationTimesFromBinFile(unparsedFilename);
                     break;
+                case "csv":
                 case "txt":
                     annotationTimesForWav = extractAnnotationTimesFromTxtFile(unparsedFilename);
                     break;
@@ -98,9 +99,10 @@ public class Main {
      * (Used for parsing annotation data from selection tables.)
      */
     private static double[][] extractAnnotationTimesFromTxtFile(String unparsedFilename) {
-        double[][] annotationTimesInWav = null;
+        double[][] annotationTimesInWav;
         try{
-            int[] fileDetails = getTxtFileDetails();
+            TextFileDetails fileDetails = getTxtFileDetails();
+            /* Reading in file contents */
             List<String> fileLines = Files.readAllLines(Paths.get(ANNOTATIONS_DIRECTORY_PATH + unparsedFilename), StandardCharsets.UTF_8);
             annotationTimesInWav = new double[fileLines.size() - 1][2]; // - 1 because we aren't including the heading row
             /* Iterating through each row in selection table */
@@ -108,12 +110,13 @@ public class Main {
             iter.next(); // Skipping the header of table
             int counter = 0;
             while(iter.hasNext()){
-                String[] result = iter.next().split("\t");
+                String[] result = iter.next().split(fileDetails.getDelimiter());
                 /* Getting the start and end times for an annotation */
-                annotationTimesInWav[counter++] = new double[]{ Double.parseDouble(result[fileDetails[0]]), Double.parseDouble(result[fileDetails[1]])};
+                annotationTimesInWav[counter++] = new double[]{ Double.parseDouble(result[fileDetails.getColumn1()]), Double.parseDouble(result[fileDetails.getColumn2()])};
             }
         } catch(Exception e){
             handleErrorMessage("Failed to extract the annotation data from " + unparsedFilename, e);
+            return null;
         }
         return annotationTimesInWav;
     }
@@ -123,20 +126,24 @@ public class Main {
      * as well as the delimiter between columns.
      * @return The column indexes.
      */
-    private static int[] getTxtFileDetails(){
+    private static TextFileDetails getTxtFileDetails(){
         Scanner getFileDetails = new Scanner(System.in);
         boolean gotAnswers = false;
-        int[] details = null;
+        TextFileDetails details = null;
         do{
             try{
+                /* Getting columns */
                 System.out.println("Which column is the first value : ");
                 int firstColumnIndex = getFileDetails.nextInt() - 1; //we start from 0
                 System.out.println("Which column is the second value : ");
                 int secondColumnIndex = getFileDetails.nextInt() - 1; //we start from 0
+                /* Getting delimiter */
+                System.out.print("Delimiter : ");
+                String delimiter = getFileDetails.next();
                 if(firstColumnIndex < 0 || secondColumnIndex < 0){
                     System.out.println("Input can't be negative");
                 } else{
-                    details = new int[]{firstColumnIndex, secondColumnIndex};
+                    details = new TextFileDetails(firstColumnIndex, secondColumnIndex, delimiter);
                     gotAnswers = true;
                 }
             } catch(Exception e){
