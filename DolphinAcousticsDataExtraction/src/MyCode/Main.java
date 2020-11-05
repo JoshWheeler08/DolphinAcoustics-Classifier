@@ -11,14 +11,17 @@ import java.util.regex.Pattern;
 
 import static java.lang.System.exit;
 
+/**
+ * Runs the program.
+ */
 public class Main {
-    public static final String WAV_FILES_DIRECTORY_PATH = "/cs/home/jmw37/Documents/SecondYear/DolphinAcoustics_VIP/PracticeSamples/common/";
+    public static final String WAV_FILES_DIRECTORY_PATH = "/cs/home/jmw37/Documents/SecondYear/DolphinAcoustics_VIP/PracticeSamples/common";
     public static final String ANNOTATIONS_DIRECTORY_PATH = "/cs/home/jmw37/Documents/SecondYear/DolphinAcoustics_VIP/Annotations/common/";
     public static final String CREATED_CLIPS_DIRECTORY_PATH = "/cs/home/jmw37/Documents/SecondYear/DolphinAcoustics_VIP/CreatedClips/";
 
     /**
      * 1. Takes a file
-     * 2. Extracts the start & end time for each annotation
+     * 2. Extracts the start and end time for each annotation
      * 3. Extracts each annotation from sound file.
      * 4. Stores each annotation in new wav file (createdClips).
      * @param args Command line args - not used.
@@ -51,7 +54,7 @@ public class Main {
                 /* Extracting annotations */
                 WavHandler wavExtractor = new WavHandler(WAV_FILES_DIRECTORY_PATH + fileDetails[0] + ".wav", annotationTimesForWav);
                 wavExtractor.extractAnnotationsFromWav();
-                System.out.println("Operation complete");
+                System.out.println("\nOperation complete");
             }
         } catch(Exception e) {
             handleErrorMessage("Failed to extract the annotations", e);
@@ -86,7 +89,7 @@ public class Main {
      * @return A string array containing the name and extension of the file (as separate elements).
      */
     private static String[] parseFilename(String unparsedFilename){
-        //https://stackoverflow.com/questions/6768779/test-filename-with-regular-expression
+        /* Citation : https://stackoverflow.com/questions/6768779/test-filename-with-regular-expression */
         Pattern pattern = Pattern.compile("^(?<filename>[\\w,\\s-]+)\\.(?<extension>[A-Za-z]{3})$");
         Matcher matcher = pattern.matcher(unparsedFilename);
         String[] filenameDetails = null;
@@ -142,9 +145,9 @@ public class Main {
         do{
             try{
                 /* Getting columns */
-                System.out.println("Which column is the first value : ");
+                System.out.println("Which column is the start time : ");
                 int firstColumnIndex = getFileDetails.nextInt() - 1; //we start from 0
-                System.out.println("Which column is the second value : ");
+                System.out.println("Which column is the end time : ");
                 int secondColumnIndex = getFileDetails.nextInt() - 1; //we start from 0
                 /* Getting delimiter */
                 System.out.print("Delimiter : ");
@@ -200,6 +203,7 @@ public class Main {
     /**
      * Extracts the minimum and max times for an annotation so that we can get the time range for our new clip.
      * @param values All the time-frequency nodes (tfnode) recorded for a single annotation.
+     * @param whistleDuration The duration of the whistle.
      * @return The earliest and latest times for an annotation.
      */
     private static double[] getMinAndMaxValue(double[] values, double whistleDuration){

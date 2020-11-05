@@ -32,7 +32,7 @@ public class WavHandler {
             System.out.println("Here is the information about the wav file : ");
             wavFile.display();
             if((endTimeOfFileInSeconds = numberOfFramesInFile / wavFile.getSampleRate()) < 1.1) { //Assuming one channel
-                System.out.println("This WAV file is too short, it must be longer than 1.1s.");
+                System.out.println("This WAV file is too short, it must be  >= 1.1s.");
                 exit(1);
             }
             if(wavFile.getNumChannels() > 1){
@@ -112,7 +112,7 @@ public class WavHandler {
      * Clears the created clips directory.
      */
     private void clearClipsDirectory(){
-        //http://helpdesk.objects.com.au/java/how-to-delete-all-files-in-a-directory#:~:text=Use%20the%20listFiles()%20method,used%20to%20delete%20each%20file.
+        /* Citation : http://helpdesk.objects.com.au/java/how-to-delete-all-files-in-a-directory#:~:text=Use%20the%20listFiles()%20method,used%20to%20delete%20each%20file. */
         File directory = new File(Main.CREATED_CLIPS_DIRECTORY_PATH);
         File[] files = directory.listFiles();
         if(files != null){
@@ -123,8 +123,10 @@ public class WavHandler {
     }
 
     /**
-     * Stores the extracted annotation recording data as a new wav file.
-     * @param data The recording data.
+     * Stores the extracted annotation data as a new wav file.
+     * @param data The annotation data.
+     * @param newFilename The name of the new file.
+     * @param numberOfFrames How long the annotation is in terms of frames.
      * @return  Boolean flag indicating success or failure.
      */
     private boolean storeAnnotationAsWavFile(double[] data, String newFilename, int numberOfFrames){
