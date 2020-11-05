@@ -17,6 +17,7 @@ public class WavHandler {
     private double[] fileAsFrames;
     private int numberOfFramesInFile;
     private double[][] timeRanges;
+    private double endTimeOfFileInSeconds;
 
     /**
      * Constructor.
@@ -30,6 +31,10 @@ public class WavHandler {
             fileAsFrames = new double[numberOfFramesInFile];
             System.out.println("Here is the information about the wav file : ");
             wavFile.display();
+            if((endTimeOfFileInSeconds = numberOfFramesInFile / wavFile.getSampleRate()) < 1.1) { //Assuming one channel
+                System.out.println("This WAV file is too short, it must be longer than 1.1s.");
+                exit(1);
+            }
             if(wavFile.getNumChannels() > 1){
                 System.out.println("System can only handle mono audio signals, be prepared for undefined behaviour (WavHandler)");
             }
@@ -41,7 +46,7 @@ public class WavHandler {
     }
 
     /**
-     * Extracts all annotations from a wav file.
+     * Extracts all the annotations from a WAV file.
      */
     public void extractAnnotationsFromWav(){
         try{
@@ -52,25 +57,55 @@ public class WavHandler {
                 return;
             }
             wavFile.close();
-            clearClipsDirectory();
+            clearClipsDirectory(); //where we will store the new WAV files
             for(int i = 0; i < timeRanges.length; i++){ //for each annotation
                 double extraTime;
-                if((extraTime = 1.1 - timeRanges[i][2]) > 0){ // Checking annotation duration is longer than 1.1s
-                    // Adding buffer to either side
-                    timeRanges[i][0] -= extraTime/2;
-                    timeRanges[i][1] += extraTime/2;
+                boolean annotationIsValid = true;
+                if((extraTime = 1.1 - timeRanges[i][2]) > 0){ // Checking if annotation is less than 1.1s long
+                    annotationIsValid = addBufferToTimeRange(extraTime, i);
                 }
-                /* Extracting annotation */
-                double[] annotationData = extractAnnotation(timeRanges[i][0], timeRanges[i][1], wavFile.getSampleRate());
-                /* Storing annotation */
-                if(!storeAnnotationAsWavFile(annotationData, DEFAULT_ANNOTATION_FILENAME + i + ".wav", annotationData.length)){
-                   System.out.println("Failed to make a new annotation clip");
-                   return;
-               }
+                if(annotationIsValid){
+                    /* Extracting annotation */
+                    double[] annotationData = extractAnnotation(timeRanges[i][0], timeRanges[i][1], wavFile.getSampleRate());
+                    /* Storing annotation */
+                    if(!storeAnnotationAsWavFile(annotationData, DEFAULT_ANNOTATION_FILENAME + i + ".wav", annotationData.length)){
+                        System.out.println("Failed to make a new annotation clip");
+                        return;
+                    }
+                }
             }
         } catch (Exception e) {
             Main.handleErrorMessage("Failed to read in file as frames", e);
         }
+    }
+
+    /**
+     * Handles the process of adding a buffer to the annotation if its less than 1.1 seconds.
+     * @param extraTime The amount of time that needs to be added to the annotation to make it 1.1 seconds.
+     * @param i The index into the array of annotation times.
+     * @return A boolean flag stating whether the issue could be resolved.
+     */
+    private boolean addBufferToTimeRange(double extraTime, int i){
+        if(timeRanges[i][0] - extraTime/2 < 0) { // Checking if the annotation is at the start of the file
+            if(timeRanges[i][1] + extraTime < endTimeOfFileInSeconds){  // Seeing if the recording is long enough to add the time buffer to the end time
+                timeRanges[i][1] += extraTime;
+            } else{ //Failure
+                System.out.println("Failed to extend annotation " + i + " to 1.1s");
+                return false;
+            }
+        } else if(timeRanges[i][1] + extraTime/2 > endTimeOfFileInSeconds){ // Checking if the annotation is at the end of the file
+            if(timeRanges[i][0] - extraTime > 0){ // Seeing if we can add the buffer to the LHS.
+                timeRanges[i][0] -= extraTime;
+            } else{ //Failure
+                System.out.println("Failed to extend annotation " + i + " to 1.1s");
+                return false;
+            }
+        } else{
+            // Adding buffer to either side
+            timeRanges[i][0] -= extraTime/2;
+            timeRanges[i][1] += extraTime/2;
+        }
+        return true;
     }
 
     /**
@@ -111,7 +146,8 @@ public class WavHandler {
      * @param sampleRate The sampling rate of the recording equipment (I.e. the number of samples per second)
      * @return The recording information corresponding to that annotation.
      *
-     * When reading from multiple channels we will need to be careful with how the data is organised. Typically : sample1L sample1R sample2L sample2R sample3L sample3R...
+     * When reading from recordings with multiple channels, we need to be careful since the data is typically organised as
+     * sample1L sample1R sample2L sample2R sample3L sample3R...
      */
     private double[] extractAnnotation(double startTime, double endtime, double sampleRate){
         double timePeriod = 1/sampleRate;
@@ -144,11 +180,3 @@ public class WavHandler {
         return audioFrames;
     }
 }
-/*
- * Memory consideration : Is it better to load the entire WAV file in or keep jumping into the file? ->
- * Currently it loads the recording into an array which will make the system faster for smaller files but will make it impossible to use really large files due to
- * main memory exhaustion.
- *
- *
- * Need to add support for multiple sound channels.
- */

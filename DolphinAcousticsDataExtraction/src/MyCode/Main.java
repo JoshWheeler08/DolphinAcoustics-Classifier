@@ -12,8 +12,8 @@ import java.util.regex.Pattern;
 import static java.lang.System.exit;
 
 public class Main {
-    public static final String WAV_FILES_DIRECTORY_PATH = "/cs/home/jmw37/Documents/SecondYear/DolphinAcoustics_VIP/PracticeCommonSamples/";
-    public static final String ANNOTATIONS_DIRECTORY_PATH = "/cs/home/jmw37/Documents/SecondYear/DolphinAcoustics_VIP/Annotations/raven/";
+    public static final String WAV_FILES_DIRECTORY_PATH = "/cs/home/jmw37/Documents/SecondYear/DolphinAcoustics_VIP/PracticeSamples/common/";
+    public static final String ANNOTATIONS_DIRECTORY_PATH = "/cs/home/jmw37/Documents/SecondYear/DolphinAcoustics_VIP/Annotations/common/";
     public static final String CREATED_CLIPS_DIRECTORY_PATH = "/cs/home/jmw37/Documents/SecondYear/DolphinAcoustics_VIP/CreatedClips/";
 
     /**
@@ -51,6 +51,7 @@ public class Main {
                 /* Extracting annotations */
                 WavHandler wavExtractor = new WavHandler(WAV_FILES_DIRECTORY_PATH + fileDetails[0] + ".wav", annotationTimesForWav);
                 wavExtractor.extractAnnotationsFromWav();
+                System.out.println("Operation complete");
             }
         } catch(Exception e) {
             handleErrorMessage("Failed to extract the annotations", e);
