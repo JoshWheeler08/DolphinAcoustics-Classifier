@@ -41,7 +41,6 @@ public class WavHandler {
             this.timeRanges = timeRanges;
         } catch(Exception e){
             Main.handleErrorMessage("Failed to open audio input stream : " + filename, e);
-            exit(1);
         }
     }
 
@@ -57,7 +56,7 @@ public class WavHandler {
                 return;
             }
             wavFile.close();
-            clearClipsDirectory(); //where we will store the new WAV files
+            //clearClipsDirectory(); //where we will store the new WAV files
             for(int i = 0; i < timeRanges.length; i++){ //for each annotation
                 double extraTime;
                 boolean annotationIsValid = true;

@@ -4,20 +4,24 @@ import tonals.tonal;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static java.lang.System.exit;
+import java.io.BufferedReader;
+import java.io.FileReader;
 
 /**
  * Runs the program.
  */
 public class Main {
-    public static final String WAV_FILES_DIRECTORY_PATH = "/cs/home/jmw37/Documents/SecondYear/DolphinAcoustics_VIP/PracticeSamples/common/";
-    public static final String ANNOTATIONS_DIRECTORY_PATH = "/cs/home/jmw37/Documents/SecondYear/DolphinAcoustics_VIP/Annotations/common/";
-    public static final String CREATED_CLIPS_DIRECTORY_PATH = "/cs/home/jmw37/Documents/SecondYear/DolphinAcoustics_VIP/CreatedClips/";
+    //public static final String WAV_FILES_DIRECTORY_PATH = "/cs/home/jmw37/Documents/SecondYear/DolphinAcoustics_VIP/PracticeSamples/common/";
+    public static final String WAV_FILES_DIRECTORY_PATH = "/run/media/joshwheeler/Elements/DolphinVIPFiles/MobySoundRecordings/5th_DCL_data_bottlenose/";
+    //public static final String ANNOTATIONS_DIRECTORY_PATH = "/cs/home/jmw37/Documents/SecondYear/DolphinAcoustics_VIP/Annotations/common/";
+    public static final String ANNOTATIONS_DIRECTORY_PATH = "/run/media/joshwheeler/Elements/DolphinVIPFiles/MobySoundAnnotations/bottlenose/";
+    public static String CREATED_CLIPS_DIRECTORY_PATH = "/run/media/joshwheeler/Elements/DolphinVIPFiles/MobySoundClips/bottlenose/";
+    //public static final String CREATED_CLIPS_DIRECTORY_PATH = "/cs/home/jmw37/Documents/SecondYear/DolphinAcoustics_VIP/CreatedClips/";
 
     /**
      * 1. Takes a file
@@ -27,14 +31,44 @@ public class Main {
      * @param args Command line args - not used.
      */
     public static void main(String[] args) {
-        String unparsedFilename;
-        String[] fileDetails;
-        /* Getting the filename and parsing it */
-        do{
-            unparsedFilename = getFilename();
-            //E.g. "Qx-Dc-CC0411-TAT11-CH2-041114-154040-s.bin";
-            fileDetails = parseFilename(unparsedFilename);
-        }while (fileDetails == null);
+        if(true) {
+            Scanner sc = new Scanner(System.in);
+            System.out.print("Filename : ");
+            String filename = sc.nextLine();
+            try(BufferedReader fin = new BufferedReader(new FileReader(filename))) {
+                String line;
+                String temp = CREATED_CLIPS_DIRECTORY_PATH;
+                while (((line = fin.readLine()) != null)) {
+                    try {
+                        String[] fileDetails = parseFilename(line);
+                        CREATED_CLIPS_DIRECTORY_PATH = CREATED_CLIPS_DIRECTORY_PATH + "/" + fileDetails[0] + "/";
+                        Files.createDirectory(Paths.get(CREATED_CLIPS_DIRECTORY_PATH));
+                        runProgram(fileDetails, line);
+                    }catch(Exception exception){
+                        System.out.println("Failed to create a directory for the data : " + line);
+                    }finally{
+                        CREATED_CLIPS_DIRECTORY_PATH = temp;
+                    }
+                }
+            }catch(Exception ioe){
+                System.out.println("Couldn't access the file : " + ioe.getMessage());
+            }
+            sc.close();
+        }else{
+            /* Getting the filename and parsing it */
+            String unparsedFilename;
+            String[] fileDetails;
+            do{
+                unparsedFilename = getFilename();
+                //E.g. "Qx-Dc-CC0411-TAT11-CH2-041114-154040-s.bin";
+                fileDetails = parseFilename(unparsedFilename);
+            }while (fileDetails == null);
+
+            runProgram(fileDetails, unparsedFilename);
+        }
+    }
+
+    private static void runProgram(String[] fileDetails, String unparsedFilename){
         double[][] annotationTimesForWav = null;
         try {
             /* Determining the type of file */
@@ -48,7 +82,7 @@ public class Main {
                     break;
                 default:
                     System.out.println("We don't have support for that file type");
-                    exit(1);
+                    return;
             }
             if(annotationTimesForWav != null){
                 /* Extracting annotations */
@@ -59,8 +93,8 @@ public class Main {
         } catch(Exception e) {
             handleErrorMessage("Failed to extract the annotations", e);
         }
-        exit(0);
     }
+
 
     /**
      * Gets the filename from the user.
