@@ -48,7 +48,7 @@ def main():
     """<insert here> """
     base_to_hdd = '/run/media/joshwheeler/Elements/DolphinVIPFiles/MobySoundClips/'
     #Path names
-    root_path_for_wavs = [base_to_hdd + 'common/', base_to_hdd + 'bottlenose/', base_to_hdd + 'melonhead/'] 
+    root_path_for_wavs = [base_to_hdd + 'common/', base_to_hdd + 'bottlenose/', base_to_hdd + 'melon-headed/'] 
     #where to find all folders with wavs
     root_path_for_images = [base_to_hdd + 'images/common/', base_to_hdd + 'images/bottlenose/', base_to_hdd + 'images/melon-headed/']
     for index, path_to_dolphin_clips in enumerate(root_path_for_wavs):
@@ -63,7 +63,7 @@ def main():
                 save_spectrogram_image(os.path.join(root_path_for_wavs[index], directory_name, clip_name), name_without_extension, image_folder_name)
                 print(" [Done] ")
             print("All images have been created for : " + directory_name)
-        print("--------- Finished dolphin species " + (index + 1) + "---------")
+        print("\n--------- Finished " + path_to_dolphin_clips + "---------\n")
 
 if __name__ == "__main__":
     main()
