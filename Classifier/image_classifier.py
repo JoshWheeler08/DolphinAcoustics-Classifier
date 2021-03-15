@@ -14,27 +14,47 @@ from tensorflow.keras.models import Sequential
 def main():
     print("--------------------- Content ---------------------")
 
-    IMAGE_SHAPE = (244,244) # Input shape for MobileNetV2
-    TRAINING_DATA_DIR = '/run/media/joshwheeler/Elements/DolphinVIPFiles/images_dataset/train'
-    datagen_kwargs = dict(rescale=1./255, validation_split=.20) # Normalisation
+    IMAGE_SHAPE = (1400,500)
     
-    valid_datagen = tf.keras.preprocessing.image.ImageDataGenerator(**datagen_kwargs) #** = collects all keyword args in dict
+    TRAINING_DATA_DIR = '/run/media/joshwheeler/Elements/DolphinVIPFiles/images_dataset/train'
+   
+    valid_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
+        rescale=1./255,
+        validation_split=.20
+    ) #https://stackoverflow.com/questions/42443936/keras-split-train-test-set-when-using-imagedatagenerator
 
-    valid_generator = valid_datagen.flow_from_directory(
+    train_generator = valid_datagen.flow_from_directory(
+        TRAINING_DATA_DIR,
+        subset="training",
+        shuffle=True,
+        target_size=IMAGE_SHAPE
+    )
+
+    validation_generator = valid_datagen.flow_from_directory(
         TRAINING_DATA_DIR,
         subset="validation",
         shuffle=True,
         target_size=IMAGE_SHAPE
     )
-
-    train_datagen = tf.keras.preprocessing.image.ImageDataGenerator(**datagen_kwargs)
     
-    train_generator = train_datagen.flow_from_directory(
-        TRAINING_DATA_DIR,
-        subset="training",
-        shuffle=True,
-        target_size=IMAGE_SHAPE
-    ) # Returns a directory iterator object 
+    #print(train_generator[0][1].shape)
+    #return
+
+    # Visualise the data
+    images = iter(train_generator[0][0]) 
+    labels = iter(train_generator[0][1])
+    classes = train_generator.class_indices.keys()
+    #print(classes)
+
+    fig, ax = plt.subplots(2,2)
+    for i in range(2):
+        for j in range(2):
+            ax[i][j].imshow(next(images))
+            label_index = np.where(next(labels)==1)[0][0]
+            ax[i][j].set_xlabel(classes[0])
+    plt.show()
+    
+
 
    
 
