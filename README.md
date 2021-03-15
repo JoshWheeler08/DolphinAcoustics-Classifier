@@ -1,13 +1,12 @@
-# DolphinAcoustics_VIP
+# Dolphin Acoustics VIP
 
-## Usage
+## Contents
 
-- To compile the program, please move into the 'src/' directory and enter 'make'.
+- Classifier (Josh Wheeler, 2021) - contains the code for implementing a simple CNN-based species classifier [In progress]
 
-- To run the program, please move into the 'src/' directory and enter 'java MyCode.Main'.
+- ExtractingClipsMoby (Josh Wheeler, 2020) - extracts the annotated whistles from the moby sound dataset and stores them as clips (new wav files); these clips are then used inside `Classifer` for creating a dataset to train our neural networks [Done]
 
-- To remove the class files, please move into the 'src/' directory and enter 'make clean'.
+- Annotation Management System (Tamim Anahf Tamim, 2021) - 
 
-## Warning
-
-Please note that you will need to put your own WAV files and annotations into the provided folders before running the program. This may also involve changing the directory paths at the top of the Main class.
+## Installation
+- See individual README files for instructions
