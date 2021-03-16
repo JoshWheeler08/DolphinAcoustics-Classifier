@@ -1,0 +1,19 @@
+#!/bin/bash
+rm -rf ./test/
+
+mkdir test
+
+cd train 
+
+array=($(ls .))
+
+cd ../test/
+
+for i in "${array[@]}"
+do
+    mkdir "$i"
+    cd ..
+    find ./train/"$i"/ -maxdepth 1 -type f | head -n200 | xargs cp -t ./test/"$i"/
+    find ./train/"$i"/ -maxdepth 1 -type f | head -n200 | xargs -d '\n' rm -f --
+    cd test 
+done

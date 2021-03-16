@@ -1,4 +1,4 @@
-# Dolphin Acoustics VIP
+# Dolphin Acoustics Classifier
 
 ## Contents
 

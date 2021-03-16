@@ -1,0 +1,35 @@
+#!/bin/bash
+
+cwd=$(pwd)
+
+PATH_TO_DATA="/run/media/joshwheeler/Elements/DolphinVIPFiles/images_dataset/"
+
+rm -rf ./train/
+
+mkdir train # Creating the training image dataset 
+
+cd $PATH_TO_DATA
+
+array=($(ls .)) # Getting the different classes
+
+for i in "${array[@]}" # Removing files from folder
+do
+    let COUNTER=0 # Need to rename files to avoid collisions
+    for file in ./"$i"/*/*.png
+    do 
+        mv $file ./"$i"/$COUNTER".png"
+        let COUNTER=COUNTER+1
+    done
+    find ./"$i"/ -mindepth 1 -maxdepth 1 -type d -exec rm -r {} \; # Deleting folders
+done
+
+cd $cwd
+
+for i in "${array[@]}" 
+do
+    mkdir ./train/"$i"
+    find "$PATH_TO_DATA"/"$i"/ -maxdepth 1 -type f | head -n1000 | xargs cp -t ./train/"$i"/  
+done
+
+# Copying the first 4000 from each dataset class to upload to google drive for colab
+
